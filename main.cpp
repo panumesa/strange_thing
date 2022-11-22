@@ -7,11 +7,23 @@ template <typename T>
 struct Block {
     Block *next = nullptr;
     Block *prev = nullptr;
-    T *arr = nullptr;
     int cap = 0;
     int sz = 0;
+    T *arr = nullptr;
     Block() = default;
     Block(int n) : arr(new T [n]), cap(n), next(nullptr), prev(nullptr), sz(0){}
+    Block(const Block& other): next(nullptr), prev(nullptr), cap(other.cap), sz(other.sz), arr(new T[cap]){
+        memcpy(arr, other.arr, cap*sizeof(T));
+    }
+    Block& operator =(Block& other){
+        Block<T> tmp (other);
+//        memcpy(arr, other.arr, other.sz *sizeof(T));
+        std::swap(arr, tmp.arr);
+        std::swap(sz,tmp.sz);
+        std::swap(cap,tmp.cap);
+        return *this;
+    }
+
     void add(const T& val) {
         if (sz < cap) {
             arr[sz++] = val;
@@ -38,6 +50,26 @@ struct Dynarr {
     int size_block = 0;
     Dynarr():size_block(50),head(new Block<T>(50)){}
     Dynarr(int n): size_block(n), head(new Block<T>(n)){}
+    Dynarr(const Dynarr& other):
+        head(new Block<T>(other.size_block)), size_block(other.size_block){
+        Block<T> * tmp = other.head;
+        *head = *tmp;
+        if(tmp->next !=nullptr) {
+            while (true) {
+                head->next = new Block<T>(*(tmp->next));
+                head->next->prev = head;
+                tmp = tmp->next;
+                if (tmp->next == nullptr)
+                    break;
+            }
+        }
+    }
+    Dynarr& operator =( Dynarr& other){
+        Dynarr tmp = other;
+        std::swap(tmp.head, head);
+        std::swap(size_block,tmp.size_block);
+        return *this;
+    }
     void push_back(const T& val){
         head->add(val);
     }
@@ -148,14 +180,16 @@ int main() {
     ll pos ;
     std::cin >> n >> sz;
     Dynarr<int> a(n);
+    Dynarr<int> b(n);
     for (int i = 0; i < sz; ++i) {
         int z;
         std::cin >> z; a.push_back(z);
-    }
-    std::cin >> pos;
-    a.insert(pos,-1);
+        }
+    b = a;
+//    std::cin >> pos;
+//    a.insert(pos,-1);
     std::cout << a << '\n';
-    a.remove(0);
-    std::cout << a;
+//    a.remove(0);
+    std::cout << b;
     return 0;
 }
