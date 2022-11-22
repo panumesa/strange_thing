@@ -54,42 +54,45 @@ struct Dynarr {
 
         }
     }
-    void insert(const ll index , const T& val) {// inserts right after index
+    void insert(const ll idx , const T& val) {// inserts right after index
         Block<T> *tmp = head;
-        ll nn = index;
-        for (;;) {
-            if(tmp == nullptr)
-                throw std::runtime_error("check index");
-            if (nn == tmp->sz && tmp ->sz < tmp->cap){
-                tmp->arr[tmp->sz++] = val;
-                return ;
-            }
-            if (nn < tmp->sz)
-            {
-                Block<T> * rozhden = new Block<T>(tmp->cap);
-                rozhden->next = tmp->next;
-                rozhden->prev = tmp;
-                if(tmp->next != nullptr)
-                    tmp->next->prev = rozhden;
-                tmp->next = rozhden;
-                rozhden->arr[rozhden->sz++] = val;
-                int i = 1;
-                bool help_imtired = true;
-                int swaps = tmp->sz;
-                while(swaps - nn++ - 1){
-                    if(help_imtired) {
-                        std::swap(rozhden->arr[rozhden->sz - 1], tmp->arr[tmp->sz - i]);
-                        i++;
-                        help_imtired = false;
-                        continue;
-                    }
-                    std::swap(tmp->arr[tmp->sz-i], tmp->arr[tmp->sz-i+1]);
-                    i++;
-                }
-                return;
-            }
-            nn-=tmp->sz;
+        ll index = idx;
+        while(index - tmp->sz >= 0) {
+            index -= tmp->sz;
+            if(tmp->next == nullptr)
+                throw std::runtime_error("bad insertion (out of range)\n");
             tmp = tmp->next;
+            if(index - tmp->sz < 0)
+                break;
+        }
+        if(index == tmp->sz - 1 && tmp->sz < tmp->cap){
+            tmp->arr[tmp->sz++] = val;
+            return;
+        }
+        if(index == tmp->sz - 1)
+        {
+            Block<T>* creature = new Block<T>(head->cap);
+            creature->sz = 1;
+            creature->arr[0] = val;
+            creature->next = tmp->next;
+            creature->prev = tmp;
+            tmp->next = creature;
+            creature->next->prev = creature;
+            return;
+        }
+        if(index < tmp->sz){
+            Block<T>* creature = new Block<T>(head->cap);
+            creature->sz = 1;
+            creature->arr[0] = val;
+            creature->next = tmp->next;
+            creature->prev = tmp;
+            tmp->next = creature;
+            if(creature->next !=nullptr)
+                creature->next->prev = creature;
+            std::swap(creature->arr[0], tmp->arr[tmp->sz - 1]);
+            for (int i = tmp->sz - 1; i > index + 1; --i) {// -2 ?? ?
+                std::swap(tmp->arr[i],tmp->arr[i-1]);
+            }
         }
     }
     void remove(const ll idx){
@@ -104,14 +107,16 @@ struct Dynarr {
                 break;
         }
         --(tmp->sz);
-        for (int i = index; i < tmp->sz - index; ++i) {
-            std::swap(tmp->arr[index + i],tmp->arr[index + 1 + i]);
-        }
         if(tmp->sz == 0){
             tmp->prev->next = tmp->next;
             tmp->next->prev = tmp->prev;
             delete tmp;
+            return;
         }
+        for (int i = index; i < tmp->sz - index ; ++i) {
+            std::swap(tmp->arr[i],tmp->arr[1 + i]);
+        }
+
     }
     ~Dynarr(){
         std::stack<Block<T>*> s;
@@ -131,24 +136,11 @@ struct Dynarr {
             Block<T>* runthrough = a.head;
             while(runthrough != nullptr){
                 for (int i = 0; i < runthrough->sz; ++i) {
-                    out << runthrough->arr[i];
+                    out << runthrough->arr[i] << ' ';
                 }
                 runthrough = runthrough->next;
             }
             return out;
-    }
-     template <>
-     std::ostream& operator <<(std::ostream& out, Dynarr<int>& a){
-        Block<int>* runthrough = a.head;
-        while(runthrough != nullptr){
-//            out << "mysz is " <<runthrough->sz << '\n';
-            for (int i = 0; i < runthrough->sz; ++i) {
-                out << runthrough->arr[i] << ' ';
-            }
-//            out << '\n';
-            runthrough = runthrough->next;
-        }
-        return out;
     }
 
 int main() {
