@@ -1,5 +1,7 @@
 #include <iostream>
 #include <stack>
+//#include <algorithm>
+//#include <forward_list>
 using ll =  long long ;
 template <typename T>
 struct Dynarr;
@@ -15,6 +17,9 @@ struct Block {
     Block(const Block& other): next(nullptr), prev(nullptr), cap(other.cap), sz(other.sz), arr(new T[cap]){
         memcpy(arr, other.arr, cap*sizeof(T));
     }
+//    bool operator ==(const Block& other) const{
+//        return
+//    }
     Block& operator =(Block& other){
         Block<T> tmp (other);
 //        memcpy(arr, other.arr, other.sz *sizeof(T));
@@ -46,8 +51,10 @@ std::ostream& operator << (std::ostream& out, Dynarr<T>& a);
 
 template <typename T>
 struct Dynarr {
+//    struct iterator;
     Block<T>* head = nullptr;
     int size_block = 0;
+    int size = 0;
     Dynarr():size_block(50),head(new Block<T>(50)){}
     Dynarr(int n): size_block(n), head(new Block<T>(n)){}
     Dynarr(const Dynarr& other):
@@ -64,14 +71,18 @@ struct Dynarr {
             }
         }
     }
-    Dynarr& operator =( Dynarr& other){
-        Dynarr tmp = other;
-        std::swap(tmp.head, head);
-        std::swap(size_block,tmp.size_block);
+    void swap(Dynarr& other){
+        std::swap(other.head, head);
+        std::swap(size_block,other.size_block);
+        std::swap(size,other.size);
+    }
+    Dynarr& operator =(Dynarr& other){
+        this->swap(other);
         return *this;
     }
     void push_back(const T& val){
         head->add(val);
+        size++;
     }
     T& operator [](const size_t& n){ // access by index;
         Block<T>* tmp = head;
@@ -126,6 +137,7 @@ struct Dynarr {
                 std::swap(tmp->arr[i],tmp->arr[i-1]);
             }
         }
+        size++;
     }
     void remove(const ll idx){
         ll index = idx;
@@ -143,13 +155,57 @@ struct Dynarr {
             tmp->prev->next = tmp->next;
             tmp->next->prev = tmp->prev;
             delete tmp;
+            size--;
             return;
         }
         for (int i = index; i < tmp->sz - index ; ++i) {
             std::swap(tmp->arr[i],tmp->arr[1 + i]);
         }
-
+        size--;
     }
+
+    struct iterator{
+        Block<T>* block;
+        int pos;
+        iterator() = delete;
+        iterator(const Dynarr& a): block(&a.head) , pos(0){}
+        iterator(Block<T>* b): block(b) , pos(0){}
+        T& operator*(){
+            return block->arr[pos];
+        }
+        iterator& operator+=(int n){
+            while(n-block->sz >= 0) {
+                block = block->next;
+                n -= block->sz;
+            }
+            pos += n;
+            return *this;
+        }
+        T* operator->(){
+            return block->arr;
+        }
+        inline bool operator ==(const iterator& other) const{
+            return (pos == other.pos) && (block == other.block);
+        }
+        inline bool operator !=(const iterator& other) const{
+            return !(*this == other);
+        }
+        iterator& operator++() {
+            if (++pos == block->sz) {
+                block = block->next;
+                pos = 0;
+            }
+            return *this;
+        }
+
+    };
+    iterator begin() const{
+        return iterator(head);
+    }
+    iterator end() const{
+        return iterator(head) += size;
+    }
+
     ~Dynarr(){
         std::stack<Block<T>*> s;
         while(head != nullptr){
@@ -163,6 +219,16 @@ struct Dynarr {
     }
     friend std::ostream& operator << <T>(std::ostream& out, Dynarr<T>& a);
 };
+ template<typename T>
+ void sort(Dynarr<T>& a){
+     for (int i = 0; i < a.size ; ++i) {
+         for (int j = i; j < a.size; ++j) {
+             if(a[i] > a[j]){
+                 std::swap(a[i] , a[j]);
+             }
+         }
+     }
+ }
      template <typename T>
      std::ostream& operator << (std::ostream& out, Dynarr<T>& a){
             Block<T>* runthrough = a.head;
@@ -185,11 +251,12 @@ int main() {
         int z;
         std::cin >> z; a.push_back(z);
         }
-    b = a;
 //    std::cin >> pos;
 //    a.insert(pos,-1);
-    std::cout << a << '\n';
+     std::cout << a << '\n';
+//    sort(a);
+     std::cout << *(a.begin()+=4) <<'\n';
 //    a.remove(0);
-    std::cout << b;
+//    std::cout << a;
     return 0;
 }
