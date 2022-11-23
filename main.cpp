@@ -53,6 +53,7 @@ template <typename T>
 struct Dynarr {
 //    struct iterator;
     Block<T>* head = nullptr;
+//    Block<T>* tail = nullptr; дописать тейл, чтобы правильно работали итераторы
     int size_block = 0;
     int size = 0;
     Dynarr():size_block(50),head(new Block<T>(50)){}
@@ -175,8 +176,9 @@ struct Dynarr {
         }
         iterator& operator+=(int n){
             while(n-block->sz >= 0) {
-                block = block->next;
                 n -= block->sz;
+                if(n > 0)
+                    block = block->next;
             }
             pos += n;
             return *this;
@@ -255,7 +257,8 @@ int main() {
 //    a.insert(pos,-1);
      std::cout << a << '\n';
 //    sort(a);
-     std::cout << *(a.begin()+=4) <<'\n';
+    for (auto& i : a)
+        std::cout << i << ' ';
 //    a.remove(0);
 //    std::cout << a;
     return 0;
