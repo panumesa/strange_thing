@@ -205,7 +205,7 @@ public:
             return (pos == other.pos) && (block == other.block);
         }
         inline bool operator !=(const iterator& other) const{
-            return *this != other;
+            return !(*this == other);
         }
         iterator& operator++() {
             return *(this) += 1;
@@ -297,13 +297,7 @@ int main() {
         int z;
         std::cin >> z; a.push_back(z);
     }
-    iterator it = a.begin();
-    for (int i = 0; i < sz; ++i) {
-         std::cout << *(it++) << ' ';
-    }
-    std::cout << (it == a.end()) << std::endl;
-    std::cout << a << ' ';
-    std::cout << '\n';
-
+    for(auto it: a)
+        std::cout << it << ' ';
     return 0;
 }
