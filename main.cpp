@@ -11,12 +11,14 @@ std::ostream& operator << (std::ostream& out, Dynarr<U>& a);
 
 template <typename T>
 struct Dynarr {
+private:
     struct Block;
 //    struct iterator;
     Block* head = nullptr;
     Block* tail = nullptr;
     int size_block = 0;
     int size = 0;
+public:
     Dynarr():size_block(50),head(new Block(50)),tail(new Block){
         head->next = tail ;
         tail->prev = head;
